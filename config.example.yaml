@@ -1,0 +1,37 @@
+# Example ocr-grade configuration. Copy to config.yaml and adjust.
+# NOTE: config.py (Prompt 2) is what will actually parse this — for now this
+# file just documents the intended shape.
+
+input_dir: ./scans
+output_dir: ./out
+cache_dir: ./.cache
+
+# Rasterization DPI. Lower to 250 if output file size becomes a problem.
+dpi: 300
+
+# Course preset name, e.g. PE101 / P156. Used for output filenames and
+# (later) per-course masking templates.
+course_preset: PE101
+
+redaction:
+  # Fixed header bounding box [x, y, w, h] in pixels at the configured DPI,
+  # or omit/null to rely on regex-only masking.
+  header_box: null
+  regex_patterns:
+    - 'SID[:\s]*\d{7,10}'
+    - 'Name[:\s]*[A-Z][a-z]+ [A-Z][a-z]+'
+
+mistral:
+  # API key is read from the MISTRAL_API_KEY env var, never from this file.
+  model: mistral-ocr-latest
+  base_url: null
+  timeout_s: 60
+  include_image_base64: false
+
+# USD cost per page, used only for reporting (no hard cap).
+mistral_price_per_page: 0.001
+
+preprocess_steps:
+  deskew: true
+  denoise: true
+  contrast: true

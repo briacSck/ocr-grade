@@ -216,8 +216,12 @@ def main() -> None:
                 page = doc.load_page(page_index)
                 png_bytes = rasterize_page(page, args.dpi)
                 thumb_filename = f"{pdf_path.stem}_p{page_index + 1:03d}.png"
-                thumb_path = save_thumbnail(png_bytes, args.thumbnail_width, thumbnails_dir, thumb_filename)
-                thumbnail_rel_path = os.path.relpath(thumb_path, output_path.parent).replace(os.sep, "/")
+                thumb_path = save_thumbnail(
+                    png_bytes, args.thumbnail_width, thumbnails_dir, thumb_filename
+                )
+                thumbnail_rel_path = os.path.relpath(thumb_path, output_path.parent).replace(
+                    os.sep, "/"
+                )
 
                 page_start = time.time()
                 error: str | None = None
@@ -240,7 +244,10 @@ def main() -> None:
                 )
                 pages_processed += 1
                 status = "ok" if error is None else "FAILED"
-                print(f"[{pages_processed}] {pdf_path.name} page {page_index + 1}: {status} ({latency:.1f}s)")
+                print(
+                    f"[{pages_processed}] {pdf_path.name} page {page_index + 1}: "
+                    f"{status} ({latency:.1f}s)"
+                )
         finally:
             doc.close()
 

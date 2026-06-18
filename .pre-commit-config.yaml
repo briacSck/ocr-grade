@@ -1,0 +1,21 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: check-fixture-paths
+        name: block real/unexpected data under tests/fixtures
+        entry: python scripts/check_fixture_paths.py
+        language: system
+        types: [file]
+
+      - id: check-no-secrets
+        name: block .env files and Mistral-key-shaped tokens
+        entry: python scripts/check_no_secrets.py
+        language: system
+        types: [file]
