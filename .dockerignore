@@ -1,0 +1,16 @@
+.git
+.venv
+__pycache__
+*.pyc
+.mypy_cache
+.ruff_cache
+.pytest_cache
+.cache
+web-work
+out
+scans
+.env
+tests
+*.pdf
+samples_report.md
+samples_report_thumbnails

@@ -55,6 +55,7 @@ tests.
 | `postprocess.py` | Normalize markdown; split printed prompt from handwritten answer via token line-maps. |
 | `pdf_assembler.py` | Interleave original scan + transcript page (markdown-it → HTML → `fitz.Story`), compress, enforce the 95 MB ceiling. |
 | `reporting.py` | Write `out/run_report.md` (model, pages, failures, cost, wall time). Called by `pipeline.run_batch`. |
+| `web/` | Optional single-user FastAPI UI (`app`, `batches`, `settings`): authenticated zip upload → `pipeline.run_batch` in a background task → status page + downloads. Thin wrapper; no pipeline logic. |
 | `utils.py` | Small shared helpers. |
 
 ## Repo layout
@@ -78,6 +79,10 @@ ocr-grade/
 │   ├── postprocess.py    # markdown cleanup + prompt/answer split
 │   ├── pdf_assembler.py  # interleave scan+transcript, compress, size-guard
 │   ├── reporting.py      # out/run_report.md writer
+│   ├── web/              # optional single-user FastAPI upload UI
+│   │   ├── app.py        # routes + HTTP Basic auth
+│   │   ├── batches.py    # in-memory batch registry + background job
+│   │   └── settings.py   # WebSettings (env-only)
 │   └── utils.py
 ├── tests/
 │   ├── fixtures/synthetic/   # synthetic only — no real student data, ever

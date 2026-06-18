@@ -7,6 +7,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- Single-user web UI (`ocr_grade.web`, FastAPI): an HTTP Basic-authenticated
+  upload page where `POST /batches` accepts a folder zip of scanned exam PDFs,
+  runs the same `pipeline.run_batch` in a background task, and exposes a
+  per-batch status page plus download links (per-PDF and a "download all" zip)
+  for the interleaved transcripts. Reuses the same `MISTRAL_API_KEY`; batch state
+  is in-memory and nothing persists beyond the per-batch working directory (no
+  database, no multi-tenant features). Added a `Dockerfile` and `docs/deploy.md`
+  (Render / Fly.io / VPS, and why serverless platforms like Vercel don't fit).
+  New deps: `fastapi`, `uvicorn[standard]`, `python-multipart`.
 - Project skeleton bootstrapped: `src/ocr_grade/` package layout, Typer CLI
   (`run`, `dry-run`, `purge`, `version` — all no-ops except `version`), ruff +
   mypy config, pre-commit hooks (ruff, real-data/secret guards), CI workflow,

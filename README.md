@@ -53,5 +53,18 @@ Mistral cost, wall time, model).
 | `OCR_GRADE__<FIELD>__<NESTED>` | Override any config field, e.g. `OCR_GRADE__MISTRAL__MODEL=mistral-ocr-2512`, `OCR_GRADE__DPI=250`. |
 | `UV_SYSTEM_CERTS=true` | Trust the OS cert store (needed behind an intercepting corporate proxy). |
 
+## Web UI (optional)
+
+A single-user, password-protected upload page is also available for running
+batches from a browser instead of the terminal:
+
+```bash
+OCR_GRADE_WEB_USER=me OCR_GRADE_WEB_PASSWORD=secret \
+  uv run uvicorn ocr_grade.web.app:app --port 8000
+```
+
+It reuses the same `config.yaml` and `MISTRAL_API_KEY`. See `docs/deploy.md` for
+hosting it (Render / Fly.io / a small VPS).
+
 See `ARCHITECTURE.md` for how it fits together, `OPERATIONS.md` for running a real
 batch, and `docs/runbook.md` for the per-cycle grading checklist.
