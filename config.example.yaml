@@ -1,6 +1,10 @@
 # Example ocr-grade configuration. Copy to config.yaml and adjust.
-# NOTE: config.py (Prompt 2) is what will actually parse this — for now this
-# file just documents the intended shape.
+#
+# Any field here can be overridden by an env var named
+# OCR_GRADE__<FIELD>__<NESTED_FIELD> (double underscore), e.g.
+# OCR_GRADE__MISTRAL__MODEL=mistral-ocr-2512 or OCR_GRADE__DPI=250.
+# The one exception is mistral.api_key, which is always read from the plain
+# MISTRAL_API_KEY env var and must never appear in this file.
 
 input_dir: ./scans
 output_dir: ./out

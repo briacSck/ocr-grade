@@ -13,3 +13,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   doc stubs.
 - Phase 0 Mistral OCR sample sanity-check script (`scripts/sample_sanity_check.py`),
   validated against 80 anonymized sample pages.
+- Typed `Settings` model (`ocr_grade.config`) loaded from `config.yaml` with
+  env var overrides (`OCR_GRADE__<FIELD>__<NESTED_FIELD>`); `MISTRAL_API_KEY`
+  is always read from its own plain env var and never from yaml.
