@@ -1,4 +1,5 @@
 samples_report.md
+samples_report_thumbnails/
 __pycache__/
 *.pyc
 .venv/

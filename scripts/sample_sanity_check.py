@@ -46,7 +46,7 @@ truststore.inject_into_ssl()
 class PageResult:
     pdf_name: str
     page_number: int  # 1-indexed within its PDF
-    thumbnail_data_uri: str
+    thumbnail_rel_path: str
     markdown: str | None
     error: str | None
     latency_s: float
@@ -111,15 +111,15 @@ def rasterize_page(page: fitz.Page, dpi: int) -> bytes:
     return pix.tobytes("png")
 
 
-def make_thumbnail_data_uri(png_bytes: bytes, width: int) -> str:
+def save_thumbnail(png_bytes: bytes, width: int, thumbnails_dir: Path, filename: str) -> Path:
     image = Image.open(io.BytesIO(png_bytes))
     if image.width > width:
         ratio = width / image.width
         image = image.resize((width, int(image.height * ratio)))
-    buf = io.BytesIO()
-    image.save(buf, format="PNG")
-    encoded = base64.b64encode(buf.getvalue()).decode("ascii")
-    return f"data:image/png;base64,{encoded}"
+    thumbnails_dir.mkdir(parents=True, exist_ok=True)
+    thumb_path = thumbnails_dir / filename
+    image.save(thumb_path, format="PNG")
+    return thumb_path
 
 
 def call_mistral_ocr(client, model: str, png_bytes: bytes) -> str:
@@ -168,7 +168,7 @@ def write_report(
         lines.append("")
         lines.append(f"### Page {r.page_number}")
         lines.append("")
-        lines.append(f"![page {r.page_number} thumbnail]({r.thumbnail_data_uri})")
+        lines.append(f"![page {r.page_number} thumbnail]({r.thumbnail_rel_path})")
         lines.append("")
         if r.error is not None:
             lines.append(f"**ERROR ({r.latency_s:.1f}s):** {r.error}")
@@ -196,6 +196,9 @@ def main() -> None:
 
     pdf_paths = discover_pdfs(args.input)
 
+    output_path = args.output
+    thumbnails_dir = output_path.parent / f"{output_path.stem}_thumbnails"
+
     results: list[PageResult] = []
     pages_processed = 0
     start = time.time()
@@ -212,7 +215,9 @@ def main() -> None:
 
                 page = doc.load_page(page_index)
                 png_bytes = rasterize_page(page, args.dpi)
-                thumbnail_uri = make_thumbnail_data_uri(png_bytes, args.thumbnail_width)
+                thumb_filename = f"{pdf_path.stem}_p{page_index + 1:03d}.png"
+                thumb_path = save_thumbnail(png_bytes, args.thumbnail_width, thumbnails_dir, thumb_filename)
+                thumbnail_rel_path = os.path.relpath(thumb_path, output_path.parent).replace(os.sep, "/")
 
                 page_start = time.time()
                 error: str | None = None
@@ -227,7 +232,7 @@ def main() -> None:
                     PageResult(
                         pdf_name=pdf_path.name,
                         page_number=page_index + 1,
-                        thumbnail_data_uri=thumbnail_uri,
+                        thumbnail_rel_path=thumbnail_rel_path,
                         markdown=markdown,
                         error=error,
                         latency_s=latency,
