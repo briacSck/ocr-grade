@@ -37,3 +37,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   (max 5 attempts, honoring `Retry-After`), and prices each call from
   `mistral_price_per_page`. Filled in `docs/mistral-setup.md` and
   `docs/data-policy.md`.
+- Markdown post-processing (`postprocess`): `clean_text()` normalizes whitespace
+  and blank runs while preserving markdown structure, and
+  `split_prompt_and_answer()` re-parses the cleaned markdown (markdown-it-py) to
+  split each page into the printed prompt (a leading h1/h2/h3 heading or a
+  printed-looking paragraph) and the handwritten answer, slicing losslessly via
+  token line-maps.
