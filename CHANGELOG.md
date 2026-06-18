@@ -49,8 +49,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `{course}_{exam}_{student_id}.pdf` from the real student ID in the identity
   sidecar, and enforces a 95 MB ceiling with a pikepdf compression pass that
   falls back to 150-DPI scan downsampling and then a part-1/part-2 split.
+- End-to-end pipeline + CLI (`pipeline`, `cli`): `run` wires
+  ingestion → preprocess → mask → Mistral OCR (cached) → postprocess → assembler
+  sequentially per page with a Rich progress bar and a live cost total, writing
+  one interleaved PDF per exam plus `out/run_report.md` (pages, failures, total
+  cost, wall time, model). `dry-run` transcribes page 1 of the first exam and
+  projects batch cost/time; `purge --batch <sha>` deletes an exam's cached OCR
+  entries and intermediate artifacts. The OCR backend and header-OCR seam are
+  dependency-injected so the whole flow is tested offline.
 
 ### Changed
+- `OCRBackend.cache_fingerprint` is now a read-only Protocol property (it is a
+  computed `@property` on the Mistral backend).
 - Render transcript pages with PyMuPDF's self-contained `fitz.Story` engine
   instead of WeasyPrint, which requires GTK/Pango/cairo native libraries that
   are not installable on Windows. Dropped the `weasyprint` dependency.

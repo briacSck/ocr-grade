@@ -44,8 +44,11 @@ class OCRBackend(Protocol):
     """Structural interface every OCR backend implements."""
 
     name: str
+
     # Model name + serialized params (e.g. "mistral-ocr-latest|{...}"). Folded
     # into the cache key so a model/param change never serves a stale result.
-    cache_fingerprint: str
+    # Read-only so a concrete backend may expose it as a computed @property.
+    @property
+    def cache_fingerprint(self) -> str: ...
 
     def transcribe(self, image_path: Path, page_meta: PageMeta) -> OCRResult: ...
