@@ -4,6 +4,8 @@
 #   "mistralai",
 #   "pymupdf",
 #   "pillow",
+#   "python-dotenv",
+#   "truststore",
 # ]
 # ///
 """Phase 0 one-off script: run Mistral OCR over a folder (or single PDF) of
@@ -31,7 +33,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import fitz  # PyMuPDF
+import truststore
+from dotenv import load_dotenv
 from PIL import Image
+
+# Use the OS certificate store (Windows/macOS) instead of certifi's bundle so
+# corporate TLS-intercepting proxies/root CAs are trusted for Mistral API calls.
+truststore.inject_into_ssl()
 
 
 @dataclass
@@ -175,13 +183,14 @@ def write_report(
 
 
 def main() -> None:
+    load_dotenv()
     args = parse_args()
 
     api_key = os.environ.get("MISTRAL_API_KEY")
     if not api_key:
         sys.exit("MISTRAL_API_KEY is not set. Export it before running this script.")
 
-    from mistralai import Mistral
+    from mistralai.client import Mistral
 
     client = Mistral(api_key=api_key)
 
