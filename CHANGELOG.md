@@ -31,3 +31,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   keyed by image bytes + backend name + model/params fingerprint that stores
   results as JSON and accumulates per-batch cost/hit/miss stats so identical
   pages are never re-billed.
+- Mistral OCR backend (`ocr.mistral.MistralOCRBackend`): sends a masked page
+  inline as a base64 `image_url` data URI, parses the returned markdown into
+  heading/paragraph/list blocks (markdown-it-py), retries 429/5xx with tenacity
+  (max 5 attempts, honoring `Retry-After`), and prices each call from
+  `mistral_price_per_page`. Filled in `docs/mistral-setup.md` and
+  `docs/data-policy.md`.
