@@ -1,19 +1,57 @@
 # ocr-grade
 
 A local-first CLI that turns scanned handwritten exam PDFs into Gradescope-ready
-interleaved PDFs (scan page, then its Mistral OCR transcription), using
-**Mistral OCR 3** for handwriting-capable, layout-preserving transcription.
+interleaved PDFs (each scan page followed by its **Mistral OCR** transcription,
+with the printed prompt and the handwritten answer split apart).
 
-See `ARCHITECTURE.md` for how it fits together and `OPERATIONS.md` for running
-a real batch.
+Student identity is masked **locally** before any page reaches Mistral; the
+extracted names/SIDs stay in a gitignored cache and are never re-sent. See
+`docs/data-policy.md`.
 
-## Quickstart
+## Quickstart (≈30 seconds)
 
 ```bash
-uv sync --dev
-export MISTRAL_API_KEY=...   # see docs/mistral-setup.md
-uv run ocr-grade --help
+uv sync --dev                       # install (Python 3.11, pinned via .python-version)
+export MISTRAL_API_KEY="…"          # your key — see docs/mistral-setup.md
+cp config.example.yaml config.yaml  # then edit input/output/course/redaction
+uv run ocr-grade dry-run --config config.yaml   # OCR page 1 only; prints cost + time estimate
+uv run ocr-grade run --config config.yaml        # full batch → out/*.pdf + out/run_report.md
 ```
 
-Status: project skeleton only — `run`, `dry-run`, and `purge` are not yet
-implemented (see `CHANGELOG.md`).
+> On a corporate network whose root CA intercepts HTTPS, prefix `uv` network
+> commands with `UV_SYSTEM_CERTS=true` (e.g. `UV_SYSTEM_CERTS=true uv sync --dev`).
+
+## Sample command
+
+```bash
+# Override config fields from the command line:
+uv run ocr-grade run \
+  --config config.yaml \
+  --input ./scans \
+  --output ./out \
+  --course PE101
+```
+
+Outputs land in `output_dir` as `{course}_{exam}_{student_id}.pdf` (real student
+ID from the local identity sidecar), plus `run_report.md` (pages, failures, total
+Mistral cost, wall time, model).
+
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `ocr-grade run` | Full pipeline over every valid exam in `input_dir`. |
+| `ocr-grade dry-run` | Transcribe page 1 of the first exam; print estimated batch cost + projected time. |
+| `ocr-grade purge --batch <sha>` | Delete cached OCR results + intermediate artifacts for one exam. |
+| `ocr-grade version` | Print the installed version. |
+
+## Environment variables
+
+| Variable | Purpose |
+| --- | --- |
+| `MISTRAL_API_KEY` | **Required.** API key, read only from the env (never `config.yaml`). |
+| `OCR_GRADE__<FIELD>__<NESTED>` | Override any config field, e.g. `OCR_GRADE__MISTRAL__MODEL=mistral-ocr-2512`, `OCR_GRADE__DPI=250`. |
+| `UV_SYSTEM_CERTS=true` | Trust the OS cert store (needed behind an intercepting corporate proxy). |
+
+See `ARCHITECTURE.md` for how it fits together, `OPERATIONS.md` for running a real
+batch, and `docs/runbook.md` for the per-cycle grading checklist.

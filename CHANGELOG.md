@@ -58,7 +58,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   entries and intermediate artifacts. The OCR backend and header-OCR seam are
   dependency-injected so the whole flow is tested offline.
 
+### Documentation
+- Handoff documentation pass: rewrote `README.md` (30-second quickstart, sample
+  command, env-var table), `OPERATIONS.md` (install/configure/run/troubleshoot/
+  purge/rotate-key), and `ARCHITECTURE.md` (refreshed diagram, per-module
+  responsibility table, extension points incl. `pipeline.py`); added
+  `docs/runbook.md` with the exact per-grading-cycle checklist.
+
 ### Changed
+- Moved the `run_report.md` writer into `reporting.py` (`write_run_report`) so the
+  module matches its documented responsibility; `pipeline.run_batch` imports it.
 - `OCRBackend.cache_fingerprint` is now a read-only Protocol property (it is a
   computed `@property` on the Mistral backend).
 - Render transcript pages with PyMuPDF's self-contained `fitz.Story` engine
