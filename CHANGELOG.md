@@ -21,3 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `manifest.json`; `preprocess.rasterize()` renders pages to cached PNGs via
   PyMuPDF (no Poppler needed) and `preprocess.clean()` does toggleable
   deskew/denoise/CLAHE-contrast. Replaced `pdf2image` with `pymupdf`.
+- Local identity masking (`redaction.mask()`): blacks out a configured header
+  box and, via a cheap header-only OCR pass (the stubbable `HeaderOCR` seam),
+  masks the header band when configured identity regexes match. Extracted
+  identity strings and masked regions are written to a LOCAL-ONLY sidecar under
+  the cache dir and never re-sent to Mistral. Added `truststore` dependency.

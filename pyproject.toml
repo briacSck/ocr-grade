@@ -19,6 +19,7 @@ dependencies = [
     "markdown-it-py>=3",
     "weasyprint>=62",
     "pymupdf>=1.27.2.3",
+    "truststore>=0.10.4",
 ]
 
 [project.scripts]
