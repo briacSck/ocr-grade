@@ -7,11 +7,11 @@
 
 TODO: `uv sync --dev`, Python 3.11 via `.python-version`.
 
-**Known native-dependency caveat (Windows dev machines):** `pdf2image` needs
-the Poppler binaries on PATH, and `weasyprint` needs the Pango/GDK native
-libraries. Neither ships via pip. Document the exact install steps here once
-Prompt 3 (ingestion/preprocess) and Prompt 8 (pdf_assembler) actually exercise
-them.
+**Known native-dependency caveat (Windows dev machines):** rasterization uses
+`PyMuPDF`, which bundles its own renderer — **no Poppler install is required**.
+The remaining native caveat is `weasyprint` (Prompt 8 / `pdf_assembler`), which
+needs the Pango/GDK libraries; document its exact install steps here once that
+prompt exercises them.
 
 ## Configure
 

@@ -16,3 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Typed `Settings` model (`ocr_grade.config`) loaded from `config.yaml` with
   env var overrides (`OCR_GRADE__<FIELD>__<NESTED_FIELD>`); `MISTRAL_API_KEY`
   is always read from its own plain env var and never from yaml.
+- Ingestion + preprocess pipeline front-end: `ingestion.discover()` validates
+  input PDFs (corrupt, low native DPI, Mistral page/size limits) and writes a
+  `manifest.json`; `preprocess.rasterize()` renders pages to cached PNGs via
+  PyMuPDF (no Poppler needed) and `preprocess.clean()` does toggleable
+  deskew/denoise/CLAHE-contrast. Replaced `pdf2image` with `pymupdf`.

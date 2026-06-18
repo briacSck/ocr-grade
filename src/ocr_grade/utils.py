@@ -1,3 +1,17 @@
 """Small shared helpers (hashing, path utilities, etc.) used across modules."""
 
-# TODO: add helpers as they're needed by later prompts.
+from __future__ import annotations
+
+import hashlib
+from pathlib import Path
+
+_CHUNK = 1 << 20  # 1 MiB
+
+
+def sha256_file(path: str | Path) -> str:
+    """Return the hex SHA-256 of a file, read in streamed chunks."""
+    digest = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(_CHUNK), b""):
+            digest.update(chunk)
+    return digest.hexdigest()

@@ -45,7 +45,7 @@ ocr-grade/
 │   ├── cli.py            # typer entrypoint: run, dry-run, purge, version
 │   ├── config.py          # pydantic-settings: yaml + env config
 │   ├── ingestion.py        # discover + validate input PDFs
-│   ├── preprocess.py       # rasterize (pdf2image) + deskew/denoise/contrast
+│   ├── preprocess.py       # rasterize (PyMuPDF) + deskew/denoise/contrast
 │   ├── redaction.py        # local header masking + identity sidecar
 │   ├── ocr/
 │   │   ├── base.py        # OCRBackend Protocol + OCRResult (cheap future-proofing)
