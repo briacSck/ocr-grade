@@ -43,3 +43,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   split each page into the printed prompt (a leading h1/h2/h3 heading or a
   printed-looking paragraph) and the handwritten answer, slicing losslessly via
   token line-maps.
+- Final PDF assembler (`pdf_assembler.build_interleaved`): interleaves each
+  original (unmasked) scan page with a transcript page rendered from the cleaned
+  markdown (markdown-it-py → HTML → `fitz.Story`), names the file
+  `{course}_{exam}_{student_id}.pdf` from the real student ID in the identity
+  sidecar, and enforces a 95 MB ceiling with a pikepdf compression pass that
+  falls back to 150-DPI scan downsampling and then a part-1/part-2 split.
+
+### Changed
+- Render transcript pages with PyMuPDF's self-contained `fitz.Story` engine
+  instead of WeasyPrint, which requires GTK/Pango/cairo native libraries that
+  are not installable on Windows. Dropped the `weasyprint` dependency.
