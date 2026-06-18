@@ -26,3 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   masks the header band when configured identity regexes match. Extracted
   identity strings and masked regions are written to a LOCAL-ONLY sidecar under
   the cache dir and never re-sent to Mistral. Added `truststore` dependency.
+- OCR backend seam + cache (`ocr.base`, `ocr.cache`): `OCRBackend` Protocol with
+  `OCRResult`/`OCRBlock`/`PageMeta` types, and a content-addressed `OCRCache`
+  keyed by image bytes + backend name + model/params fingerprint that stores
+  results as JSON and accumulates per-batch cost/hit/miss stats so identical
+  pages are never re-billed.
