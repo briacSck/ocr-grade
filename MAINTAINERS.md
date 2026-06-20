@@ -1,8 +1,6 @@
 # Maintainer notes
 
-Developer/architecture reference for `ocr-grade`. End users never need this file —
-they use `README.md`. Keep this concise; it replaces the old ARCHITECTURE /
-OPERATIONS / CHANGELOG docs.
+Developer/architecture reference for `ocr-grade`. End users should/can refer to `README.md` only.
 
 ## What it is
 
@@ -87,10 +85,9 @@ The shipped `config.yaml` is a ready-to-use copy (course set per-batch in the UI
 
 ## OCR quality
 
-Transcription accuracy is bounded by handwriting legibility and scan resolution,
-**not** by Mistral plan tier (tiers gate rate/quota, not model quality). Biggest
-lever: scan at ~300 DPI. The interleaved original scan is intentionally kept next
-to the transcript so the grader cross-checks rather than trusting OCR blindly.
+Transcription accuracy is bounded by handwriting legibility and scan resolution. Scanning
+at ~300 DPI will significantly reduce errors and hallucinations. The interleaved original
+scan is intentionally kept next to the transcript so the grader cross-checks rather than only trusting OCR.
 
 ## Privacy invariant
 
@@ -99,17 +96,9 @@ Mistral. Extracted identity strings live only in the gitignored cache sidecars.
 Never commit student data; `tests/fixtures/` is synthetic only. See
 `docs/data-policy.md`.
 
-## Extension points
-
-- **Second OCR backend:** implement `ocr.base.OCRBackend` (`name`,
-  `cache_fingerprint`, `transcribe`) and return it from `pipeline._build_backend`.
-  Cache keys on the fingerprint, so results stay separate. No other stage changes.
-- **New masking rule:** add a regex to `redaction.regex_patterns` or set a fixed
-  `redaction.header_box`; extend `redaction.mask` / the `HeaderOCR` seam for richer logic.
-
 ## Version notes
 
-- **v1 (current):** full pipeline (ingestion → preprocess → redaction → Mistral OCR
+- **v1.01 (current):** full pipeline (ingestion → preprocess → redaction → Mistral OCR
   + cache → postprocess → interleaved assembler), Typer CLI, single-user web UI.
   Pre-ship hardening: configurable `min_native_dpi`, UTF-8 text I/O, dynamic page
   auto-orientation before masking, `.env`-based config + macOS launch scripts.
