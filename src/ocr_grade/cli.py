@@ -11,6 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import typer
+from dotenv import load_dotenv
 from rich.console import Console
 from rich.progress import (
     BarColumn,
@@ -23,6 +24,9 @@ from rich.progress import (
 from ocr_grade import __version__, pipeline
 from ocr_grade.config import Settings, load_settings
 from ocr_grade.ingestion import ValidationStatus, discover
+
+# Pick up MISTRAL_API_KEY (and any overrides) from a local .env if present.
+load_dotenv()
 
 app = typer.Typer(
     help="Turn scanned handwritten exam PDFs into Gradescope-ready interleaved transcripts."

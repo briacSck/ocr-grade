@@ -1,0 +1,51 @@
+# ocr-grade configuration.
+#
+# This file is ready to use as-is — you normally do NOT need to edit it.
+# Your Mistral API key and the web login live in the .env file instead, never here.
+#
+# When you run the web page, the course code is set per batch in the upload form,
+# and the input/output/cache folders below are ignored (the web app uses its own
+# per-batch working folder). Those folders only matter for the command-line tool.
+
+input_dir: ./scans
+output_dir: ./out
+cache_dir: ./.cache
+
+# How sharply pages are rendered before transcription. Higher is crisper but
+# larger; 300 is a good default.
+dpi: 300
+
+# Reject scans whose detected resolution is below this. The current scanner
+# exports ~144 DPI, so this is set a little under 150 to accept them.
+min_native_dpi: 140
+
+# Default label stamped on output filenames when you don't type a course in the
+# upload form.
+course_preset: EXAM
+
+redaction:
+  # Automatically detect each exam's page rotation and turn it upright before
+  # blacking out identity, so the name/ID is found no matter how the scanner
+  # oriented the page. Leave this on.
+  auto_orient: true
+  # No fixed box — identity is found by the patterns below and the whole header
+  # band is masked when one matches.
+  header_box: null
+  regex_patterns:
+    - 'SID[:\s]*\d{7,10}'
+    - 'Name[:\s]*[A-Z][a-z]+ [A-Z][a-z]+'
+
+mistral:
+  # The API key is read from the .env file (MISTRAL_API_KEY), never from here.
+  model: mistral-ocr-latest
+  base_url: null
+  timeout_s: 60
+  include_image_base64: false
+
+# Used only to estimate cost in the report; does not cap spending.
+mistral_price_per_page: 0.001
+
+preprocess_steps:
+  deskew: true
+  denoise: true
+  contrast: true
