@@ -66,7 +66,7 @@ def _resolve_student_id(explicit: str | None, sidecars: list[Path] | None) -> st
     strings: list[str] = []
     for sidecar in sidecars or []:
         try:
-            data = json.loads(Path(sidecar).read_text())
+            data = json.loads(Path(sidecar).read_text(encoding="utf-8"))
         except (OSError, ValueError):
             continue
         strings.extend(data.get("identity_strings", []))
@@ -109,16 +109,25 @@ def _assemble(
     exam_name: str,
     *,
     scan_dpi: int | None,
+    scan_rotation: int = 0,
 ) -> bytes:
-    """Build the interleaved PDF bytes (original scan page, then transcript page)."""
+    """Build the interleaved PDF bytes (original scan page, then transcript page).
+
+    ``scan_rotation`` is the clockwise rotation the pipeline applied to normalize
+    the page to upright; it is folded into the embedded scan's ``/Rotate`` so the
+    grader sees the manuscript right-side up next to the transcript.
+    """
     out = fitz.open()
     with fitz.open(exam.path) as src:
         for t in transcripts:
             idx = t.page_number - 1
+            page_src = src[idx]
+            if scan_rotation:
+                page_src.set_rotation((page_src.rotation + scan_rotation) % 360)
             if scan_dpi is None:
                 out.insert_pdf(src, from_page=idx, to_page=idx)
             else:
-                pix = src[idx].get_pixmap(dpi=scan_dpi)
+                pix = page_src.get_pixmap(dpi=scan_dpi)
                 page = out.new_page(width=pix.width, height=pix.height)
                 page.insert_image(page.rect, stream=pix.tobytes("jpg"))
             _render_transcript_pages(out, _transcript_html(course, exam_name, t))
@@ -150,6 +159,7 @@ def build_interleaved(
     identity_sidecars: list[Path] | None = None,
     exam_name: str | None = None,
     course: str | None = None,
+    scan_rotation: int = 0,
     max_bytes: int = MAX_OUTPUT_BYTES,
 ) -> list[Path]:
     """Write the interleaved manuscript+transcript PDF for one exam.
@@ -172,7 +182,11 @@ def build_interleaved(
 
     # 1) lossless scans, then 2) downsampled scans.
     for scan_dpi in (None, DOWNSAMPLE_DPI):
-        data = _compress(_assemble(exam, transcripts, course, exam_name, scan_dpi=scan_dpi))
+        data = _compress(
+            _assemble(
+                exam, transcripts, course, exam_name, scan_dpi=scan_dpi, scan_rotation=scan_rotation
+            )
+        )
         if len(data) <= max_bytes:
             target = out_dir / f"{base}.pdf"
             target.write_bytes(data)
@@ -185,7 +199,11 @@ def build_interleaved(
     for i, half in enumerate(halves, start=1):
         if not half:
             continue
-        data = _compress(_assemble(exam, half, course, exam_name, scan_dpi=DOWNSAMPLE_DPI))
+        data = _compress(
+            _assemble(
+                exam, half, course, exam_name, scan_dpi=DOWNSAMPLE_DPI, scan_rotation=scan_rotation
+            )
+        )
         target = out_dir / f"{base}_part{i}.pdf"
         target.write_bytes(data)
         written.append(target)

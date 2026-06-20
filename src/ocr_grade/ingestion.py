@@ -159,6 +159,6 @@ def discover(
         cache_dir = Path(cache_dir)
         cache_dir.mkdir(parents=True, exist_ok=True)
         manifest = [r.model_dump(mode="json") for r in records]
-        (cache_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+        (cache_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
     return records

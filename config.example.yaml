@@ -13,11 +13,20 @@ cache_dir: ./.cache
 # Rasterization DPI. Lower to 250 if output file size becomes a problem.
 dpi: 300
 
+# Minimum estimated native scan DPI to accept. Files below this are flagged in
+# ingestion and skipped. Lower to ~140 if your scanner exports just under 150.
+min_native_dpi: 150
+
 # Course preset name, e.g. PE101 / P156. Used for output filenames and
 # (later) per-course masking templates.
 course_preset: PE101
 
 redaction:
+  # Auto-detect each exam's page rotation and normalize it to upright before
+  # masking, so identity is found wherever the scanner placed the header. Only
+  # applies when header_box is null. Set false if your scans are already upright
+  # and you want to skip the orientation-detection OCR.
+  auto_orient: true
   # Fixed header bounding box [x, y, w, h] in pixels at the configured DPI,
   # or omit/null to rely on regex-only masking.
   header_box: null

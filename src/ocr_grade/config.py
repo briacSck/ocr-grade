@@ -26,6 +26,10 @@ from pydantic_settings import (
 class RedactionSettings(BaseModel):
     header_box: tuple[int, int, int, int] | None = None
     regex_patterns: list[str] = Field(default_factory=list)
+    # Auto-detect each exam's page rotation and normalize it to upright before
+    # masking, so identity is found wherever the scanner placed the header.
+    # Only used when header_box is null (a fixed box implies a known orientation).
+    auto_orient: bool = True
 
 
 class MistralSettings(BaseModel):
@@ -54,6 +58,10 @@ class Settings(BaseSettings):
     output_dir: Path
     cache_dir: Path
     dpi: int = Field(default=300, ge=150)
+    # Minimum estimated native scan DPI to accept; files below this are flagged
+    # in ingestion. Default mirrors ingestion.MIN_NATIVE_DPI; lower it (e.g. 140)
+    # for scanners that export just under the usual 150.
+    min_native_dpi: int = Field(default=150, ge=72)
     course_preset: str
     redaction: RedactionSettings = Field(default_factory=RedactionSettings)
     mistral: MistralSettings

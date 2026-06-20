@@ -26,8 +26,8 @@ from .ocr.cache import OCRCache, _cache_key
 from .ocr.mistral import MistralOCRBackend
 from .pdf_assembler import PageTranscript, build_interleaved
 from .postprocess import clean_text, split_prompt_and_answer
-from .preprocess import PageImage, clean, rasterize
-from .redaction import HeaderOCR, mask
+from .preprocess import PageImage, clean, rasterize, rotate_image
+from .redaction import HeaderOCR, detect_orientation, mask
 from .reporting import write_run_report
 
 
@@ -115,6 +115,19 @@ def _process_exam(
         failures.append(Failure(exam=exam.path.name, page=None, reason=str(exc)))
         return [], pages_done
 
+    # Detect rotation once per exam (a scanned stack is rotated uniformly) and
+    # normalize every page to upright so masking finds the header wherever the
+    # scanner placed it; the same rotation is baked into the embedded scan below.
+    rotation = 0
+    if pages:
+        try:
+            rotation = detect_orientation(pages[0], settings, header_ocr)
+        except Exception:  # noqa: BLE001 - never let detection abort the exam
+            rotation = 0
+        if rotation:
+            for pimg in pages:
+                pimg.image = rotate_image(pimg.image, rotation)
+
     transcripts: list[PageTranscript] = []
     sidecars: list[Path] = []
     for pimg in pages:
@@ -139,6 +152,7 @@ def _process_exam(
         settings.output_dir,
         identity_sidecars=sidecars,
         course=settings.course_preset,
+        scan_rotation=rotation,
     )
     return outputs, pages_done
 
@@ -153,7 +167,11 @@ def run_batch(
     """Run the full pipeline over every valid exam in ``settings.input_dir``."""
     backend = backend or _build_backend(settings)
     cache = OCRCache(settings.cache_dir)
-    exams = discover(settings.input_dir, cache_dir=settings.cache_dir)
+    exams = discover(
+        settings.input_dir,
+        cache_dir=settings.cache_dir,
+        min_native_dpi=settings.min_native_dpi,
+    )
 
     failures: list[Failure] = [
         Failure(exam=e.path.name, page=None, reason=f"skipped ({e.status}): {e.message}")
@@ -192,7 +210,11 @@ def estimate(
     """Process page 1 of the first valid exam and extrapolate cost/time."""
     backend = backend or _build_backend(settings)
     cache = OCRCache(settings.cache_dir)
-    exams = discover(settings.input_dir, cache_dir=settings.cache_dir)
+    exams = discover(
+        settings.input_dir,
+        cache_dir=settings.cache_dir,
+        min_native_dpi=settings.min_native_dpi,
+    )
     ok = _ok_exams(exams)
     if not ok:
         raise RuntimeError(f"No valid exams found in {settings.input_dir}.")

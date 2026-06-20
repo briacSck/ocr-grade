@@ -47,5 +47,5 @@ def write_run_report(report: RunReport, out_dir: str | Path) -> Path:
     else:
         lines.append("None.")
 
-    path.write_text("\n".join(lines) + "\n")
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path

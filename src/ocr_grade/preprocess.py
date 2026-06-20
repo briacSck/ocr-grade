@@ -109,3 +109,36 @@ def clean(image: np.ndarray, steps: PreprocessStepsSettings) -> np.ndarray:
     if steps.contrast:
         result = _contrast(result)
     return result
+
+
+# Map clockwise degrees -> the matching cv2 rotate constant. Clockwise so the
+# value lines up 1:1 with a PDF /Rotate increment (see pdf_assembler).
+_ROTATE_OPS = {
+    90: cv2.ROTATE_90_CLOCKWISE,
+    180: cv2.ROTATE_180,
+    270: cv2.ROTATE_90_COUNTERCLOCKWISE,
+}
+
+
+def rotate_image(image: np.ndarray, degrees_cw: int) -> np.ndarray:
+    """Rotate ``image`` clockwise by 0/90/180/270 degrees (no-op for 0)."""
+    op = _ROTATE_OPS.get(degrees_cw % 360)
+    return image if op is None else cv2.rotate(image, op)
+
+
+def text_is_horizontal(image: np.ndarray) -> bool:
+    """True if text lines run horizontally (page is portrait-upright or upside down).
+
+    Scale-free heuristic: lines of text create strong banding along the axis
+    perpendicular to the text direction. We compare the coefficient of variation
+    of the row-ink profile against the column-ink profile; the stronger banding
+    marks the text-line axis. This reliably tells 0/180 from 90/270, but NOT
+    which way is up -- that is resolved by the identity OCR in `redaction`.
+    """
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+    rows = binary.sum(axis=1).astype(float)
+    cols = binary.sum(axis=0).astype(float)
+    row_cv = rows.std() / (rows.mean() + 1e-6)
+    col_cv = cols.std() / (cols.mean() + 1e-6)
+    return bool(row_cv >= col_cv)
