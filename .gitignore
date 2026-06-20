@@ -10,3 +10,9 @@ __pycache__/
 .pytest_cache/
 .cache/
 web-work/
+config.yaml
+scans/
+out/
+*.pdf
+exams.zip
+.gstack/

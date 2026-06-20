@@ -42,14 +42,14 @@ class OCRCache:
 
         if entry.exists():
             self.hits += 1
-            return OCRResult.model_validate_json(entry.read_text())
+            return OCRResult.model_validate_json(entry.read_text(encoding="utf-8"))
 
         result = backend.transcribe(image_path, meta)
         self.misses += 1
         self.total_cost_usd += result.cost_usd
 
         self.dir.mkdir(parents=True, exist_ok=True)
-        entry.write_text(result.model_dump_json(indent=2))
+        entry.write_text(result.model_dump_json(indent=2), encoding="utf-8")
         return result
 
 

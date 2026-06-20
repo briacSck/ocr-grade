@@ -24,7 +24,7 @@ import numpy as np
 from pydantic import BaseModel, ConfigDict
 
 from .config import MistralSettings, Settings
-from .preprocess import PageImage
+from .preprocess import PageImage, rotate_image, text_is_horizontal
 
 # Default header band (top fraction of the page) used for the OCR crop / mask
 # when no explicit header_box is configured.
@@ -94,6 +94,54 @@ def _fill_black(image: np.ndarray, region: tuple[int, int, int, int]) -> None:
     cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 0), thickness=-1)
 
 
+def detect_orientation(
+    page_image: PageImage,
+    settings: Settings,
+    header_ocr: HeaderOCR | None = None,
+) -> int:
+    """Return the clockwise rotation (0/90/180/270) that makes the page upright.
+
+    The text-line axis is resolved geometrically (`text_is_horizontal`), leaving
+    two candidates; we then OCR each candidate's top header band and keep the
+    orientation whose band matches the configured identity regexes -- i.e. the
+    end where the student header physically is. Falls back to 0 when auto-orient
+    is off, a fixed `header_box` is configured, there are no regex patterns, or
+    no candidate yields an identity match.
+    """
+    if not settings.redaction.auto_orient or settings.redaction.header_box is not None:
+        return 0
+    if not settings.redaction.regex_patterns:
+        return 0
+
+    img = page_image.image
+    candidates = (0, 180) if text_is_horizontal(img) else (90, 270)
+    if header_ocr is None:
+        header_ocr = MistralHeaderOCR(settings.mistral)
+
+    hits_by_rotation: dict[int, int] = {}
+    for rotation in candidates:
+        rotated = rotate_image(img, rotation)
+        height, width = rotated.shape[:2]
+        crop = rotated[0 : int(height * HEADER_BAND_FRACTION), 0:width]
+        ok, buf = cv2.imencode(".png", crop)
+        if not ok:
+            continue
+        text = header_ocr.read_header(buf.tobytes())
+        hits_by_rotation[rotation] = sum(
+            len(re.findall(pattern, text)) for pattern in settings.redaction.regex_patterns
+        )
+
+    if not hits_by_rotation:
+        return 0
+    best = max(hits_by_rotation.values())
+    winners = [rotation for rotation, hits in hits_by_rotation.items() if hits == best]
+    # Only rotate on an unambiguous single winner; a tie (identity matched in
+    # both candidate bands, or none at all) means we cannot tell -- leave as-is.
+    if best == 0 or len(winners) != 1:
+        return 0
+    return winners[0]
+
+
 def mask(
     page_image: PageImage,
     settings: Settings,
@@ -148,7 +196,8 @@ def mask(
                     "identity_strings": identity_strings,
                 },
                 indent=2,
-            )
+            ),
+            encoding="utf-8",
         )
 
     return MaskedPage(

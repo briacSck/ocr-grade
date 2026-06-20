@@ -83,6 +83,33 @@ def test_fingerprint_busts_the_key(tmp_path: Path) -> None:
     assert cache.hits == 0
 
 
+def test_unicode_text_round_trips(tmp_path: Path) -> None:
+    """OCR output with non-Latin-1 chars (math superscripts, arrows) must cache
+    and reload intact. On Windows, write_text/read_text default to cp1252 and
+    would raise UnicodeEncodeError here without an explicit utf-8 encoding."""
+
+    class UnicodeBackend(FakeBackend):
+        def transcribe(self, image_path: Path, page_meta: PageMeta) -> OCRResult:
+            self.calls += 1
+            return OCRResult(
+                markdown_text="x⁰ → y ≡ limit",  # superscript 0, →, ≡
+                blocks=[OCRBlock(type="paragraph", text="∑", confidence=0.9)],  # ∑
+                raw_response={"stub": True},
+                cost_usd=self._cost,
+                latency_ms=1.0,
+            )
+
+    backend = UnicodeBackend()
+    img = _write(tmp_path / "page.png", b"unicode-page")
+
+    OCRCache(tmp_path).get_or_call(backend, img, META)
+    reloaded = OCRCache(tmp_path).get_or_call(backend, img, META)
+
+    assert backend.calls == 1  # second served from disk
+    assert reloaded.markdown_text == "x⁰ → y ≡ limit"
+    assert reloaded.blocks[0].text == "∑"
+
+
 def test_persisted_json_round_trips_across_instances(tmp_path: Path) -> None:
     backend = FakeBackend()
     img = _write(tmp_path / "page.png", b"persist-me")

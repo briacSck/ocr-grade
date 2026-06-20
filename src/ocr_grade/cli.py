@@ -58,7 +58,11 @@ def run(
     """Run the full pipeline over a batch of scanned exams."""
     settings = _load(config, input=input, output=output, course=course)
 
-    exams = discover(settings.input_dir, cache_dir=settings.cache_dir)
+    exams = discover(
+        settings.input_dir,
+        cache_dir=settings.cache_dir,
+        min_native_dpi=settings.min_native_dpi,
+    )
     total_pages = sum(e.page_count for e in exams if e.status == ValidationStatus.OK)
     if total_pages == 0:
         console.print(f"[red]No valid exams found in {settings.input_dir}.[/red]")
