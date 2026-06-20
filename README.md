@@ -5,20 +5,20 @@ grade quickly. For each page you get the **original scan with a readable
 transcription right next to it**, and each student's **name and ID are
 automatically blacked out** before anything leaves your computer.
 
-You run it on your own Mac through a simple web page in your browser. No coding.
+You run it on your own PC through a web page in your browser.
 
 ---
 
 ## What you need
 
-- A Mac.
+- A computer.
 - The **`ocr-grade` folder** on your computer (the one containing this README).
-- A free **Mistral** account for the transcription service (you'll make one below).
+- A **Mistral** console account for the transcription service (you'll make one below), and an OCR API key.
 - About **10 minutes**, once, for first-time setup.
 
 ---
 
-## One-time setup (do this once)
+## One-time initial setup
 
 ### 1. Install the helper tool (`uv`)
 
@@ -34,7 +34,7 @@ app needs. You only do this once.)
 
 ### 2. Get your Mistral API key
 
-1. Go to **https://console.mistral.ai/** and create an account (it's free to start).
+1. Go to **https://console.mistral.ai/** and create an account (it's free to start, adding credits after the first tests is necessary to use it on large samples of exams).
 2. Click **API Keys**, then **Create new key**.
 3. **Copy the key now** — Mistral only shows it once. Paste it somewhere safe for a moment.
 
@@ -83,8 +83,8 @@ right-click, and choose **Compress** — that makes a `.zip` file.
 
 On the app page:
 
-1. (Optional) Type your **course code** in the "Course override" box (e.g. `PE101`).
-   It just labels the output files.
+1. Type your **course code** in the "Course override" box (e.g. `PE101`).
+   It labels the output files.
 2. Click **Choose File** and pick your `.zip`.
 3. Click **Start batch**.
 
@@ -94,7 +94,7 @@ single `.zip`. The files save to your **Downloads** folder.
 
 ### 5. When you're finished — clean up
 
-For your students' privacy, erase the scans and transcripts from the app when you're
+For your students' privacy, you can erase the scans and transcripts from the app when you're
 done:
 
 1. Make sure you've **downloaded** everything you want to keep.
@@ -106,10 +106,10 @@ done:
 
 ## Privacy
 
-Each student's name and ID are blacked out on your Mac **before** any page is sent
+Each student's name and ID are blacked out on your computer **before** any page is sent
 for transcription, and the names/IDs themselves are never sent. Only the
-blacked-out page image goes to Mistral for reading. For the full details — and a
-note to check your Mistral account's data settings before grading real exams — see
+blacked-out page image goes to Mistral for reading. For the full details and a
+note to check your Mistral account's data settings before grading real exams, see
 [docs/data-policy.md](docs/data-policy.md).
 
 ---
