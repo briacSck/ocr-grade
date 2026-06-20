@@ -1,27 +1,27 @@
 # Privacy & your students' data
 
 This tool handles scanned **student exams**, which are sensitive. Here's exactly
-what stays on your Mac and what gets sent out, in plain terms.
+what stays on your computer and what gets sent out.
 
 ## What never leaves your computer
 
 - **The original scans** and the full-resolution page images.
 - **Student names and IDs.** Before any page is transcribed, the app finds the
   name/ID area and **blacks it out**. The actual names and IDs are saved only in a
-  private file on your Mac (used to name the output files) and are **never sent
+  private file on your computer (used to name the output files) and are **never sent
   anywhere**.
 
 ## What gets sent for transcription
 
 - **Only the blacked-out page image.** The version of the page that goes to the
   Mistral transcription service has the identity already covered with a solid black
-  box. It's sent directly to the service for reading — not uploaded to any public
+  box. It's sent directly to the service for reading, it is not uploaded to any public
   link or shared store.
 - **One small slice of the top of the page**, briefly, so the app can locate the
   name/ID in order to black it out. That slice is used only for that check.
 
 That's it. The typed transcript that comes back is the only result, and it's kept
-on your Mac.
+on your computer.
 
 ## One thing to check before grading real exams
 
@@ -33,8 +33,11 @@ their current terms, which can change. Before processing real student work:
 - In your Mistral account, prefer settings with **no training on your data** and the
   **shortest retention** your plan offers.
 
-When in doubt, treat anything sent to the service as leaving your custody — which is
+When in doubt, treat anything sent to the service as leaving your custody, which is
 why identity is blacked out on your computer first.
+
+More generally, Mistral is compliant with the GDPR and the AI Act, which ensures a high
+level of data protection.
 
 ## Clean up when you're done
 
