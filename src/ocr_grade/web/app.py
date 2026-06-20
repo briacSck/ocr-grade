@@ -16,6 +16,7 @@ from html import escape
 from pathlib import Path
 from typing import Annotated
 
+from dotenv import load_dotenv
 from fastapi import BackgroundTasks, Depends, FastAPI, Form, HTTPException, UploadFile, status
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -23,6 +24,10 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from . import batches
 from .batches import Batch, UploadError
 from .settings import WebSettings, get_web_settings
+
+# Load the API key + login from a local .env file (next to the project) so the
+# operator never has to export env vars by hand. Real env vars win (override=False).
+load_dotenv()
 
 app = FastAPI(title="ocr-grade")
 security = HTTPBasic(auto_error=False)

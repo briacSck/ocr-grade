@@ -1,54 +1,44 @@
-# Data policy
+# Privacy & your students' data
 
-This tool processes scanned **student exams**, which are sensitive education
-records. This page describes what leaves your machine and what does not.
+This tool handles scanned **student exams**, which are sensitive. Here's exactly
+what stays on your Mac and what gets sent out, in plain terms.
 
-## What stays local (never sent to Mistral)
+## What never leaves your computer
 
-- **Original scanned PDFs** and the full-resolution rasterized page PNGs under
-  the cache directory.
-- **Extracted student identity** (names, SIDs). The redaction pass
-  (`ocr_grade.redaction`) writes matched identity strings and masked regions to a
-  local-only sidecar (`<page>.identity.json`) under the gitignored cache dir.
-  These strings are **never** sent back to Mistral.
+- **The original scans** and the full-resolution page images.
+- **Student names and IDs.** Before any page is transcribed, the app finds the
+  name/ID area and **blacks it out**. The actual names and IDs are saved only in a
+  private file on your Mac (used to name the output files) and are **never sent
+  anywhere**.
 
-## What is sent to Mistral
+## What gets sent for transcription
 
-- **The masked page image only.** Before any full page is transcribed, the
-  header band (configured `header_box` and/or any region where an identity regex
-  matched) is blacked out with a solid rectangle. The masked PNG is sent inline
-  as a base64 `image_url` data URI to the `/v1/ocr` endpoint — no upload to
-  Mistral's `/files` store and no public URL hosting.
-- **One cheap header-only crop**, once per page, for the identity-detection OCR
-  pass. This crop is what lets us find and mask the identity; it is sent only for
-  that read and the resulting identity strings are kept local (see above).
+- **Only the blacked-out page image.** The version of the page that goes to the
+  Mistral transcription service has the identity already covered with a solid black
+  box. It's sent directly to the service for reading — not uploaded to any public
+  link or shared store.
+- **One small slice of the top of the page**, briefly, so the app can locate the
+  name/ID in order to black it out. That slice is used only for that check.
 
-The masked page → `OCRResult` (markdown + heading/paragraph/list blocks) is the
-only transcription output; results are cached locally and keyed by image content
-so the same page is never re-sent or re-billed.
+That's it. The typed transcript that comes back is the only result, and it's kept
+on your Mac.
 
-## Mistral's handling of submitted data
+## One thing to check before grading real exams
 
-Data you send to the Mistral API is governed by Mistral's current terms and
-privacy policy, and by your account's data-processing settings:
+The transcription is done by **Mistral** (https://mistral.ai). Whether they keep
+submitted images, and for how long, depends on your Mistral account settings and
+their current terms, which can change. Before processing real student work:
 
-- Privacy Policy: <https://mistral.ai/terms/#privacy-policy>
-- Terms of Use / Data Processing: <https://mistral.ai/terms/>
-- OCR API docs: <https://docs.mistral.ai/api/endpoint/ocr>
+- Review Mistral's privacy terms: https://mistral.ai/terms/#privacy-policy
+- In your Mistral account, prefer settings with **no training on your data** and the
+  **shortest retention** your plan offers.
 
-Retention windows and whether submitted content may be used to improve models
-depend on your plan and account configuration, and these terms change over time.
-**Before processing real student data, verify the current policy and confirm your
-account's training/retention settings** (e.g. opt out of training-on-your-data if
-your plan offers it, and prefer a plan with a zero/short retention commitment).
-When in doubt, treat anything sent to the API as leaving your custody — which is
-exactly why identity is masked locally first.
+When in doubt, treat anything sent to the service as leaving your custody — which is
+why identity is blacked out on your computer first.
 
-## Operator checklist
+## Clean up when you're done
 
-- Confirm masking config (`redaction.header_box`, `redaction.regex_patterns`) is
-  correct for the exam template **before** a batch run; spot-check masked pages.
-- Keep the cache dir (originals, PNGs, identity sidecars) on local/controlled
-  storage; it is gitignored and must not be committed or synced to shared drives.
-- Delete cache artifacts when a grading run is complete and they are no longer
-  needed.
+When you've finished grading and downloaded your transcripts, double-click
+**`cleanup.command`** (see the README). It erases the uploaded scans and generated
+transcripts from the computer. Anything you've already saved to your Downloads
+folder is untouched.

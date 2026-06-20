@@ -1,70 +1,140 @@
-# ocr-grade
+# Exam Transcriber
 
-A local-first CLI that turns scanned handwritten exam PDFs into Gradescope-ready
-interleaved PDFs (each scan page followed by its **Mistral OCR** transcription,
-with the printed prompt and the handwritten answer split apart).
+Turn scanned, handwritten exam PDFs into clean, typed transcripts you can read and
+grade quickly. For each page you get the **original scan with a readable
+transcription right next to it**, and each student's **name and ID are
+automatically blacked out** before anything leaves your computer.
 
-Student identity is masked **locally** before any page reaches Mistral; the
-extracted names/SIDs stay in a gitignored cache and are never re-sent. See
-`docs/data-policy.md`.
+You run it on your own Mac through a simple web page in your browser. No coding.
 
-## Quickstart (≈30 seconds)
+---
 
-```bash
-uv sync --dev                       # install (Python 3.11, pinned via .python-version)
-export MISTRAL_API_KEY="…"          # your key — see docs/mistral-setup.md
-cp config.example.yaml config.yaml  # then edit input/output/course/redaction
-uv run ocr-grade dry-run --config config.yaml   # OCR page 1 only; prints cost + time estimate
-uv run ocr-grade run --config config.yaml        # full batch → out/*.pdf + out/run_report.md
+## What you need
+
+- A Mac.
+- The **`ocr-grade` folder** on your computer (the one containing this README).
+- A free **Mistral** account for the transcription service (you'll make one below).
+- About **10 minutes**, once, for first-time setup.
+
+---
+
+## One-time setup (do this once)
+
+### 1. Install the helper tool (`uv`)
+
+Open the **Terminal** app (press `Cmd`+`Space`, type "Terminal", press Return).
+Copy the line below, paste it into Terminal, and press Return:
+
+```
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-> On a corporate network whose root CA intercepts HTTPS, prefix `uv` network
-> commands with `UV_SYSTEM_CERTS=true` (e.g. `UV_SYSTEM_CERTS=true uv sync --dev`).
+When it finishes, **close the Terminal window**. (This installs a small tool the
+app needs. You only do this once.)
 
-## Sample command
+### 2. Get your Mistral API key
 
-```bash
-# Override config fields from the command line:
-uv run ocr-grade run \
-  --config config.yaml \
-  --input ./scans \
-  --output ./out \
-  --course PE101
+1. Go to **https://console.mistral.ai/** and create an account (it's free to start).
+2. Click **API Keys**, then **Create new key**.
+3. **Copy the key now** — Mistral only shows it once. Paste it somewhere safe for a moment.
+
+### 3. Enter your key and choose a password
+
+In the `ocr-grade` folder there's a file called **`.env.example`**. We'll make your
+own copy of it. In Terminal, paste these two lines one at a time:
+
+```
+cd ~/Downloads/ocr-grade        # change this if the folder is somewhere else
+cp .env.example .env && open -e .env
 ```
 
-Outputs land in `output_dir` as `{course}_{exam}_{student_id}.pdf` (real student
-ID from the local identity sidecar), plus `run_report.md` (pages, failures, total
-Mistral cost, wall time, model).
+A text editor opens your new **`.env`** file with three lines. Fill them in:
 
-## Commands
+- `MISTRAL_API_KEY=` — paste the key you copied (right after the `=`, no spaces).
+- `OCR_GRADE_WEB_USER=` — a username you'll use to log into the app (e.g. your name).
+- `OCR_GRADE_WEB_PASSWORD=` — a password you choose for the app.
 
-| Command | What it does |
+**Save** (`Cmd`+`S`) and close the editor. That's it — setup is done.
+
+---
+
+## Each time you grade exams
+
+### 1. Start the app
+
+Double-click **`start.command`** in the `ocr-grade` folder.
+
+- A black Terminal window opens and stays open — **that's normal, leave it open.**
+- Your browser opens the app a few seconds later. If it doesn't, go to
+  **http://localhost:8000** yourself.
+- The first time, your Mac may say the file is from an "unidentified developer."
+  If so: **right-click `start.command` → Open → Open**. You only do that once.
+
+### 2. Log in
+
+Type the **username and password** you chose in your `.env` file.
+
+### 3. Prepare your scans as a `.zip`
+
+Put **one PDF per student** in a folder. In Finder, select all those PDFs,
+right-click, and choose **Compress** — that makes a `.zip` file.
+
+### 4. Upload and run
+
+On the app page:
+
+1. (Optional) Type your **course code** in the "Course override" box (e.g. `PE101`).
+   It just labels the output files.
+2. Click **Choose File** and pick your `.zip`.
+3. Click **Start batch**.
+
+The page shows progress and a running cost (transcription is a few tenths of a cent
+per page). When it's done, **download** each transcript, or **Download all** as a
+single `.zip`. The files save to your **Downloads** folder.
+
+### 5. When you're finished — clean up
+
+For your students' privacy, erase the scans and transcripts from the app when you're
+done:
+
+1. Make sure you've **downloaded** everything you want to keep.
+2. **Close the black Terminal window** (this stops the app).
+3. Double-click **`cleanup.command`**. It deletes the uploaded scans and generated
+   transcripts from the computer. Anything already in your Downloads folder is kept.
+
+---
+
+## Privacy
+
+Each student's name and ID are blacked out on your Mac **before** any page is sent
+for transcription, and the names/IDs themselves are never sent. Only the
+blacked-out page image goes to Mistral for reading. For the full details — and a
+note to check your Mistral account's data settings before grading real exams — see
+[docs/data-policy.md](docs/data-policy.md).
+
+---
+
+## Tips for the best transcripts
+
+- **Scan clearly.** Scanning at about **300 DPI** gives noticeably better results.
+  The current scans (~144 DPI) work, but higher resolution helps a lot.
+- **Expect to glance at the original.** Messy handwriting, math symbols, and
+  diagrams are hard for any transcription tool, so it can occasionally guess wrong.
+  That's exactly why the original scan sits right next to the transcript — skim both.
+- Paying for Mistral does **not** improve accuracy (it only raises how fast/how much
+  you can run). Clearer, higher-resolution scans are what improve the transcript.
+
+---
+
+## If something goes wrong
+
+| What you see | What to do |
 | --- | --- |
-| `ocr-grade run` | Full pipeline over every valid exam in `input_dir`. |
-| `ocr-grade dry-run` | Transcribe page 1 of the first exam; print estimated batch cost + projected time. |
-| `ocr-grade purge --batch <sha>` | Delete cached OCR results + intermediate artifacts for one exam. |
-| `ocr-grade version` | Print the installed version. |
+| Double-clicking `start.command` does nothing | Right-click it → **Open** → **Open**. If still nothing, open Terminal, type `cd ` then drag the folder in, press Return, then run `bash start.command`. |
+| "Web auth is not configured" | Your `.env` is missing the username/password. Re-open `.env` (step 3 of setup) and fill them in. |
+| Login is rejected | The username/password must match your `.env` exactly. |
+| "Unauthorized" / 401 error during a batch | Your Mistral key is missing or wrong in `.env`. Re-check it at https://console.mistral.ai/. |
+| A transcript looks wrong | Compare it to the scan next to it; for messy handwriting this is expected. Rescanning that exam at higher resolution usually helps. |
 
-## Environment variables
-
-| Variable | Purpose |
-| --- | --- |
-| `MISTRAL_API_KEY` | **Required.** API key, read only from the env (never `config.yaml`). |
-| `OCR_GRADE__<FIELD>__<NESTED>` | Override any config field, e.g. `OCR_GRADE__MISTRAL__MODEL=mistral-ocr-2512`, `OCR_GRADE__DPI=250`. |
-| `UV_SYSTEM_CERTS=true` | Trust the OS cert store (needed behind an intercepting corporate proxy). |
-
-## Web UI (optional)
-
-A single-user, password-protected upload page is also available for running
-batches from a browser instead of the terminal:
-
-```bash
-OCR_GRADE_WEB_USER=me OCR_GRADE_WEB_PASSWORD=secret \
-  uv run uvicorn ocr_grade.web.app:app --port 8000
-```
-
-It reuses the same `config.yaml` and `MISTRAL_API_KEY`. See `docs/deploy.md` for
-hosting it (Render / Fly.io / a small VPS).
-
-See `ARCHITECTURE.md` for how it fits together, `OPERATIONS.md` for running a real
-batch, and `docs/runbook.md` for the per-cycle grading checklist.
+Questions or a key that stopped working? Make a new key at
+https://console.mistral.ai/ and paste it into your `.env`.
